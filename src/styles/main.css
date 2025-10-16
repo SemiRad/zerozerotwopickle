@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Alphabet Souplings';
+  src: url('../assets/fonts/AlphabetSouplings.ttf');
+}
+
+@theme {
+  --font-souplings: 'Alphabet Souplings', cursive;
+}
