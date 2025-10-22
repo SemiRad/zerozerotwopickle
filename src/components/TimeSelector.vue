@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 w-full font-roboto mr-10">
+  <div class="p-4 w-full font-roboto">
     <div class="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2.5">
       <div
         v-for="slot in formattedSlots"

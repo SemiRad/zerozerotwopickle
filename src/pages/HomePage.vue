@@ -5,7 +5,7 @@
     <img src="/zzt0.png" class="w-16 md:w-32 lg:w-48 drop-shadow-4xl" />
   </div> -->
 
-  <div class="grid grid-cols-1 md:grid-cols-2 mb-4 p-5">
+  <div class="grid grid-cols-1 lg:grid-cols-2 mb-4 p-5 bg-gray-100">
     <div>
       <div class="flex justify-center">
         <Calendar />
