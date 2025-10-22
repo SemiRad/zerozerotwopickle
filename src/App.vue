@@ -1,5 +1,5 @@
 <template>
-  <HomePage />
+  <HomePage class="bg-white" />
 </template>
 
 <script setup lang="ts">
@@ -20,12 +20,12 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-image: url('/court1.JPG');
+  /* background-image: url('/court1.JPG');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
   backdrop-filter: blur(1.8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: -1;
+  z-index: -1; */
 }
 </style>

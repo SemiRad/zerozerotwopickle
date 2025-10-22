@@ -6,11 +6,11 @@
       @click="toggleCalendar"
     >
       <div class="bg-green-950 h-1/3 rounded-t-2xl flex justify-center items-center shadow-inner">
-        <span class="font-souplings text-2xl text-white">{{ day }}</span>
+        <span class="font-inter font-bold text-2xl text-white">{{ day }}</span>
       </div>
       <div class="flex flex-col justify-center items-center flex-1">
-        <span class="font-souplings text-4xl text-green-950">{{ month }}</span>
-        <span class="font-souplings text-6xl text-green-950">{{ date }}</span>
+        <span class="font-inter text-4xl font-light text-green-950">{{ month }}</span>
+        <span class="font-inter text-6xl font-bold text-green-950">{{ date }}</span>
       </div>
     </div>
 
@@ -29,7 +29,7 @@
           >
             ‹
           </button>
-          <span class="font-souplings text-green-950 text-xl">
+          <span class="font-inter font-bold text-green-950 text-xl">
             {{ months[currentMonth.getMonth()] }} {{ currentMonth.getFullYear() }}
           </span>
           <button
@@ -52,14 +52,14 @@
             v-for="(dayObj, i) in calendarDays"
             :key="i"
             :class="[
-              'py-1 rounded-lg font-souplings transition-colors duration-300',
+              'py-1 rounded-lg font-inter transition-colors duration-300',
               dayObj.isPlaceholder
                 ? 'opacity-0'
-                : isSameDate(dayObj.date, selectedDate)
-                ? 'bg-green-900 text-white'
-                : dayObj.disabled
-                ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                : 'bg-amber-100 hover:bg-amber-200 text-green-950 cursor-pointer',
+                : isSameDate(dayObj.date, bookingStore.selectedDate)
+                  ? 'bg-green-900 text-white'
+                  : dayObj.disabled
+                    ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                    : 'bg-amber-100 hover:bg-amber-200 text-green-950 cursor-pointer',
             ]"
             @click="!dayObj.disabled && !dayObj.isPlaceholder && selectDate(dayObj.date)"
           >
@@ -73,20 +73,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useBookingStore } from '@/stores/Booking'
 
-const now = new Date(
-  new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' })
-)
-
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-const selectedDate = ref(new Date(today))
+const bookingStore = useBookingStore()
 const showCalendar = ref(false)
 
-const startDate = new Date(today)
-const endDate = new Date(today)
-endDate.setMonth(endDate.getMonth() + 1)
+const toggleCalendar = () => (showCalendar.value = !showCalendar.value)
 
-const currentMonthIndex = ref(0) 
+const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }))
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+const currentMonthIndex = ref(0)
 const currentMonth = computed(() => {
   const d = new Date(today)
   d.setMonth(today.getMonth() + currentMonthIndex.value)
@@ -96,21 +93,9 @@ const currentMonth = computed(() => {
 const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
-const day = computed(() => days[selectedDate.value.getDay()])
-const month = computed(() => months[selectedDate.value.getMonth()])
-const date = computed(() => selectedDate.value.getDate())
-
-const toggleCalendar = () => (showCalendar.value = !showCalendar.value)
-
-const selectDate = (d: Date) => {
-  selectedDate.value = d
-  showCalendar.value = false
-}
-
-const isSameDate = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate()
+const day = computed(() => days[bookingStore.selectedDate.getDay()])
+const month = computed(() => months[bookingStore.selectedDate.getMonth()])
+const date = computed(() => bookingStore.selectedDate.getDate())
 
 const calendarDays = computed(() => {
   const year = currentMonth.value.getFullYear()
@@ -126,12 +111,19 @@ const calendarDays = computed(() => {
 
   for (let i = 1; i <= lastDay.getDate(); i++) {
     const d = new Date(year, month, i)
-    const disabled = d < startDate || d > endDate
+    const disabled = d < today
     daysInMonth.push({ date: d, disabled })
   }
 
   return daysInMonth
 })
+
+const selectDate = (d: Date) => {
+  bookingStore.selectedDate = d
+  bookingStore.bookingObject.timeSlots = []
+  bookingStore.bookingObject.totalPrice = 0
+  showCalendar.value = false
+}
 
 const prevMonth = () => {
   if (currentMonthIndex.value > 0) currentMonthIndex.value--
@@ -139,16 +131,24 @@ const prevMonth = () => {
 const nextMonth = () => {
   if (currentMonthIndex.value < 1) currentMonthIndex.value++
 }
+
+const isSameDate = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate()
 </script>
 
 <style>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
-.fade-enter-to, .fade-leave-from {
+.fade-enter-to,
+.fade-leave-from {
   opacity: 1;
 }
 </style>
