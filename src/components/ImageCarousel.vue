@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full flex flex-col items-center p-5">
+  <div class="w-full flex flex-col items-center lg:p-5">
     <div class="h-full w-full lg:w-3/4 relative overflow-hidden rounded-2xl">
       <!-- Carousel Images -->
       <div
@@ -50,7 +50,7 @@
       </div>
     </div>
 
-    <div class="font-inter w-full sm:w-3/4 mt-5 flex flex-col items-center">
+    <div class="font-inter w-full sm:w-3/4 mt-5 mb-20 lg:mb-0 flex flex-col items-center">
       <div
         class="text-3xl sm:text-4xl md:text-4xl font-bold tracking-wide uppercase text-green-950 text-center"
       >
