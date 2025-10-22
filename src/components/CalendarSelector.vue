@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useBookingStore } from '@/stores/Booking'
+import { useBookingStore } from '@/stores/booking.ts'
 
 const bookingStore = useBookingStore()
 const showCalendar = ref(false)

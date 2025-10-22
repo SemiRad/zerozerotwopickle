@@ -173,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BookingObject } from '@/stores/Booking'
+import type { BookingObject } from '@/stores/booking.ts'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{

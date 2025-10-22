@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { useErrorStore } from '@/stores/error'
+import { useErrorStore } from '@/stores/error.ts'
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid'
 
 const error = useErrorStore()

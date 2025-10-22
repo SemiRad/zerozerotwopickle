@@ -39,7 +39,7 @@ import BookingButton from '@/components/BookingButton.vue'
 import Time from '@/components/TimeSelector.vue'
 import ErrorAlert from '@/components/ErrorAlert.vue'
 import BookingModal from '@/components/BookingModal.vue'
-import type { BookingObject } from '@/stores/Booking'
+import type { BookingObject } from '@/stores/booking'
 import { ref } from 'vue'
 
 const showModal = ref(false)

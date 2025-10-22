@@ -22,9 +22,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useBookingStore } from '@/stores/Booking'
-import { useErrorStore } from '@/stores/error'
-import type { BookingSlot } from '@/stores/Booking'
+import { useBookingStore } from '@/stores/booking.ts'
+import { useErrorStore } from '@/stores/error.ts'
+import type { BookingSlot } from '@/stores/booking.ts'
 
 const bookingStore = useBookingStore()
 const errorStore = useErrorStore()
@@ -33,7 +33,7 @@ const selectedSlots = computed({
   get: () => bookingStore.bookingObject.timeSlots,
   set: (val: BookingSlot[]) => {
     bookingStore.bookingObject.timeSlots = val
-    bookingStore.bookingObject.totalPrice = val.reduce((sum, s) => sum + s.cost, 0)
+    bookingStore.bookingObject.totalPrice = val.reduce((sum, s: BookingSlot) => sum + s.cost, 0)
     bookingStore.bookingObject.date = bookingStore.selectedDate
   },
 })

@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBookingStore } from '@/stores/Booking'
+import { useBookingStore } from '@/stores/booking.ts'
 import { storeToRefs } from 'pinia'
 
 const emit = defineEmits(['book'])
