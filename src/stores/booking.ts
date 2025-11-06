@@ -10,8 +10,10 @@ export type BookingSlot = {
 }
 
 export type BookingObject = {
+  id: number | null
   date: Date
-  timeSlots: BookingSlot[]
+  startSlot: BookingSlot | null
+  endSlot: BookingSlot | null
   totalPrice: number
   name: string | null
   contactNumber: string | null
@@ -52,11 +54,20 @@ export const useBookingStore = defineStore('booking', () => {
   })
 
   const bookingObject = ref<BookingObject>({
+    id: null,
     date: selectedDate.value,
-    timeSlots: [],
+    startSlot: null,
+    endSlot: null,
     totalPrice: 0,
     name: null,
     contactNumber: null,
+  })
+
+  const timeRangeLabel = computed(() => {
+    if (!bookingObject.value.startSlot || !bookingObject.value.endSlot) return '-'
+    const startLabel = bookingObject.value.startSlot.label.split(' - ')[0]
+    const endLabel = bookingObject.value.endSlot.endLabel
+    return `${startLabel} - ${endLabel}`
   })
 
   return {
@@ -64,5 +75,6 @@ export const useBookingStore = defineStore('booking', () => {
     allSlots,
     availableSlots,
     bookingObject,
+    timeRangeLabel,
   }
 })

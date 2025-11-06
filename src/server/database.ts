@@ -12,16 +12,18 @@ const createTable = async () => {
     CREATE TABLE IF NOT EXISTS bookings (
       id SERIAL PRIMARY KEY,
       date TIMESTAMP NOT NULL,
-      timeSlots JSONB NOT NULL,
-      totalPrice REAL NOT NULL,
+      start_slot JSONB,
+      end_slot JSONB,
+      total_price REAL NOT NULL,
       name TEXT,
-      contactNumber TEXT,
+      contact_number TEXT,
       email TEXT,
       status TEXT CHECK (status IN ('pending', 'available', 'reserved', 'rejected')) DEFAULT 'pending',
-      createdAt TIMESTAMPTZ DEFAULT NOW()
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `)
-  // console.log('Bookings table is ready')
+
+  console.log('✅ Bookings table is ready')
 }
 
 createTable().catch(console.error)

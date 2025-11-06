@@ -16,16 +16,11 @@
             <div class="grid grid-cols-2 text-sm mb-2">
               <div class="font-semibold space-y-2">
                 <p>Date:</p>
-                <p>Selected Slots:</p>
+                <p>Selected Time:</p>
               </div>
               <div class="space-y-2 text-right font-semibold">
                 <p>{{ formattedDate }}</p>
-                <p>{{ simplifiedSlots }}</p>
-                <div class="text-tiny text-gray-500">
-                  <p v-for="slot in bookingData?.timeSlots ?? []" :key="slot.start">
-                    {{ slot.label }}
-                  </p>
-                </div>
+                <p>{{ simplifiedSlotRange }}</p>
               </div>
             </div>
 
@@ -173,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BookingObject } from '@/stores/booking.ts'
+import type { BookingObject } from '@/stores/booking'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
@@ -210,11 +205,12 @@ const formattedDate = computed(() =>
   props.bookingData?.date ? new Date(props.bookingData.date).toLocaleDateString() : '',
 )
 
-const simplifiedSlots = computed(() => {
-  if (!props.bookingData || !props.bookingData.timeSlots.length) return ''
-  const first = props.bookingData.timeSlots[0]
-  const last = props.bookingData.timeSlots[props.bookingData.timeSlots.length - 1]
-  return `${first?.label.split(' - ')[0]} - ${last?.label.split(' - ')[1]}`
+// ✅ Simplified start–end slot label
+const simplifiedSlotRange = computed(() => {
+  const start = props.bookingData?.startSlot
+  const end = props.bookingData?.endSlot
+  if (!start || !end) return ''
+  return `${start.label.split(' - ')[0]} - ${end.label.split(' - ')[1]}`
 })
 
 const goToPayment = () => {
@@ -238,7 +234,7 @@ const finishBooking = () => {
 }
 </script>
 
-<style lang="css" scoped>
+<style scoped>
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

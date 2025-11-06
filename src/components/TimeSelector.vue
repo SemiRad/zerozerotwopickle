@@ -6,10 +6,10 @@
         :key="slot.start"
         class="p-4 border border-green-950 rounded-lg cursor-pointer text-left transition duration-300"
         :class="{
-          'bg-green-950 text-white border-transparent': isSelected(slot),
-          'bg-gray-100 hover:bg-amber-50': !isSelected(slot),
+          'bg-green-950 text-white border-transparent': isInRange(slot),
+          'bg-gray-100 hover:bg-amber-50': !isInRange(slot),
         }"
-        @click="toggleSlot(slot)"
+        @click="handleSlotClick(slot)"
       >
         <div class="font-semibold text-base sm:text-base lg:text-lg">
           {{ slot.label }}
@@ -22,21 +22,19 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useBookingStore } from '@/stores/booking.ts'
-import { useErrorStore } from '@/stores/error.ts'
-import type { BookingSlot } from '@/stores/booking.ts'
+import { useBookingStore } from '@/stores/booking'
+import { useErrorStore } from '@/stores/error'
+import type { BookingSlot } from '@/stores/booking'
 
 const bookingStore = useBookingStore()
 const errorStore = useErrorStore()
 
-const selectedSlots = computed({
-  get: () => bookingStore.bookingObject.timeSlots,
-  set: (val: BookingSlot[]) => {
-    bookingStore.bookingObject.timeSlots = val
-    bookingStore.bookingObject.totalPrice = val.reduce((sum, s: BookingSlot) => sum + s.cost, 0)
-    bookingStore.bookingObject.date = bookingStore.selectedDate
-  },
-})
+const formatTime = (hour: number): string => {
+  if (hour === 0 || hour === 24) return '12:00 AM'
+  if (hour === 12) return '12:00 PM'
+  if (hour > 12) return `${hour - 12}:00 PM`
+  return `${hour}:00 AM`
+}
 
 const formattedSlots = computed(() =>
   bookingStore.availableSlots.map((slot) => ({
@@ -45,42 +43,44 @@ const formattedSlots = computed(() =>
   })),
 )
 
-const formatTime = (hour: number) => {
-  if (hour === 0 || hour === 24) return '12:00 AM'
-  if (hour === 12) return '12:00 PM'
-  if (hour > 12) return `${hour - 12}:00 PM`
-  return `${hour}:00 AM`
+const isInRange = (slot: BookingSlot): boolean => {
+  const { startSlot, endSlot } = bookingStore.bookingObject
+  if (!startSlot || !endSlot) return false
+  return slot.start >= startSlot.start && slot.end <= endSlot.end
 }
 
-const isSelected = (slot: BookingSlot) => selectedSlots.value.some((s) => s.start === slot.start)
+const handleSlotClick = (slot: BookingSlot) => {
+  const booking = bookingStore.bookingObject
+  const { startSlot, endSlot } = booking
 
-const toggleSlot = (slot: BookingSlot) => {
-  const maxHours = 6
-  const isAlreadySelected = isSelected(slot)
+  if (!startSlot) {
+    booking.startSlot = slot
+    booking.endSlot = slot
+    booking.totalPrice = slot.cost
+    return
+  }
 
-  const potentialSelectionLength = isAlreadySelected
-    ? selectedSlots.value.length - 1
-    : selectedSlots.value.length + 1
+  if (startSlot.start === slot.start && endSlot?.end === slot.end) {
+    booking.startSlot = null
+    booking.endSlot = null
+    booking.totalPrice = 0
+    return
+  }
 
-  if (!isAlreadySelected && potentialSelectionLength > maxHours) {
+  const newStart = Math.min(startSlot.start, slot.start)
+  const newEnd = Math.max(startSlot.end, slot.end)
+
+  if (newEnd - newStart > 6) {
     errorStore.setError('You can only book up to 6 hours')
     return
   }
 
-  if (isAlreadySelected) {
-    selectedSlots.value = []
-    return
-  }
+  const allSlots = bookingStore.allSlots
+  const rangeSlots = allSlots.filter((s) => s.start >= newStart && s.end <= newEnd)
 
-  const first = selectedSlots.value[0]
-  const last = selectedSlots.value[selectedSlots.value.length - 1]
+  booking.startSlot = rangeSlots[0] ?? null
+  booking.endSlot = rangeSlots[rangeSlots.length - 1] ?? null
 
-  if (first && slot.end === first.start) {
-    selectedSlots.value = [slot, ...selectedSlots.value]
-  } else if (last && slot.start === last.end) {
-    selectedSlots.value = [...selectedSlots.value, slot]
-  } else {
-    selectedSlots.value = [slot]
-  }
+  booking.totalPrice = rangeSlots.reduce((sum, s) => sum + s.cost, 0)
 }
 </script>

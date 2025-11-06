@@ -14,18 +14,19 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 })
 
+// --- POST: Save a new booking ---
 app.post('/api/book', async (req, res) => {
-  const { date, timeSlots, totalPrice, name, contactNumber, email } = req.body
+  const { date, startSlot, endSlot, totalPrice, name, contactNumber, email } = req.body
 
   try {
     const query = `
-      insert into bookings (date, time_slots, total_price, name, contact_number, email, status)
-      values ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO bookings (date, start_slot, end_slot, total_price, name, contact_number, email, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `
-
     await pool.query(query, [
       date,
-      JSON.stringify(timeSlots),
+      JSON.stringify(startSlot),
+      JSON.stringify(endSlot),
       totalPrice,
       name,
       contactNumber,
@@ -37,6 +38,32 @@ app.post('/api/book', async (req, res) => {
   } catch (err) {
     console.error('Error saving booking:', err)
     res.status(500).json({ error: 'Failed to save booking.' })
+  }
+})
+
+// --- GET: Fetch all bookings ---
+app.get('/api/book', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM bookings ORDER BY date DESC')
+    res.status(200).json(result.rows)
+  } catch (err) {
+    console.error('Error fetching bookings:', err)
+    res.status(500).json({ error: 'Failed to fetch bookings.' })
+  }
+})
+
+// --- GET: Fetch booking by ID ---
+app.get('/api/book/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const result = await pool.query('SELECT * FROM bookings WHERE id = $1', [id])
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' })
+    }
+    res.status(200).json(result.rows[0])
+  } catch (err) {
+    console.error('Error fetching booking by ID:', err)
+    res.status(500).json({ error: 'Failed to fetch booking.' })
   }
 })
 
