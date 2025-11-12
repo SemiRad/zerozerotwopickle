@@ -205,7 +205,6 @@ const formattedDate = computed(() =>
   props.bookingData?.date ? new Date(props.bookingData.date).toLocaleDateString() : '',
 )
 
-// ✅ Simplified start–end slot label
 const simplifiedSlotRange = computed(() => {
   const start = props.bookingData?.startSlot
   const end = props.bookingData?.endSlot

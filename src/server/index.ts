@@ -67,4 +67,32 @@ app.get('/api/book/:id', async (req, res) => {
   }
 })
 
+// --- PUT: Update booking status ---
+app.put('/api/book/:id', async (req, res) => {
+  const { id } = req.params
+  const { status } = req.body
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' })
+  }
+
+  try {
+    const result = await pool.query('UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *', [
+      status,
+      id,
+    ])
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Booking not found' })
+    }
+
+    res
+      .status(200)
+      .json({ message: 'Booking status updated successfully', booking: result.rows[0] })
+  } catch (err) {
+    console.error('Error updating booking status:', err)
+    res.status(500).json({ error: 'Failed to update booking status.' })
+  }
+})
+
 app.listen(3002, () => console.log('Server is running.'))

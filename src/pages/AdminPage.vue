@@ -8,7 +8,6 @@
 
     <div v-else class="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table class="min-w-full text-sm text-left">
-        <!-- Header -->
         <thead class="text-xs uppercase bg-green-950 text-white text-center">
           <tr>
             <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
@@ -21,7 +20,6 @@
           </tr>
         </thead>
 
-        <!-- Body -->
         <tbody>
           <tr
             v-for="booking in bookings"
@@ -40,6 +38,7 @@
               <template v-if="booking.status === 'pending'">
                 <select
                   v-model="booking.status"
+                  @change="handleStatusChange(booking, booking.status)"
                   class="px-2 py-1 rounded-4xl text-white border-none outline-none uppercase bg-amber-400 focus:outline-none cursor-pointer"
                 >
                   <option value="pending" class="text-white">Pending</option>
@@ -68,11 +67,19 @@
       No bookings found.
     </div>
   </div>
+
+  <BookingStatusModal
+    :show="statusModal"
+    :newStatus="pendingStatus ?? ''"
+    @close="closeStatusModal"
+    @confirm="confirmStatus"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { BookingSlot, BookingObject } from '@/stores/booking'
+import BookingStatusModal from '@/components/BookingConfirmationModal.vue'
 
 export type BookingRecord = BookingObject & {
   id: number
@@ -83,6 +90,9 @@ export type BookingRecord = BookingObject & {
 const bookings = ref<BookingRecord[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+const statusModal = ref(false)
+const selectedBooking = ref<BookingRecord | null>(null)
+const pendingStatus = ref<string | null>(null)
 
 interface RawBooking {
   id: number
@@ -119,8 +129,7 @@ const fetchBookings = async () => {
     const rawData = await res.json()
     bookings.value = rawData.map(parseBooking)
   } catch (err: unknown) {
-    if (err instanceof Error) error.value = err.message
-    else error.value = 'Unknown error fetching bookings'
+    error.value = err instanceof Error ? err.message : 'Unknown error fetching bookings'
   } finally {
     loading.value = false
   }
@@ -138,6 +147,44 @@ function formatSlotRange(start: BookingSlot | null, end: BookingSlot | null) {
 }
 
 onMounted(fetchBookings)
+
+const handleStatusChange = (booking: BookingRecord, newStatus: string) => {
+  pendingStatus.value = newStatus
+  selectedBooking.value = booking
+  statusModal.value = true
+}
+
+const closeStatusModal = () => {
+  if (selectedBooking.value) selectedBooking.value.status = 'pending'
+  selectedBooking.value = null
+  pendingStatus.value = null
+  statusModal.value = false
+}
+
+const confirmStatus = async () => {
+  if (selectedBooking.value && pendingStatus.value) {
+    try {
+      await updateBookingStatus(selectedBooking.value, pendingStatus.value)
+      selectedBooking.value.status = pendingStatus.value
+      console.log(`Booking ${selectedBooking.value.id} changed to: ${pendingStatus.value}`)
+    } catch (err) {
+      console.error('Error confirming status:', err)
+    }
+  }
+  selectedBooking.value = null
+  pendingStatus.value = null
+  statusModal.value = false
+}
+
+const updateBookingStatus = async (booking: BookingRecord, newStatus: string) => {
+  const response = await fetch(`/api/book/${booking.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: newStatus }),
+  })
+  if (!response.ok) throw new Error(`Failed to update status (${response.status})`)
+  return await response.json()
+}
 </script>
 
 <style scoped>
