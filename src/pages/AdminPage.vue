@@ -1,31 +1,124 @@
 <template>
   <div class="admin-page p-6 font-inter">
-    <h1 class="text-2xl font-bold mb-2 uppercase">Dashboard</h1>
-    <p class="mb-6 text-gray-600">Welcome to the admin area.</p>
+    <h1 class="text-2xl font-bold mb-4 uppercase text-center text-secondary">Dashboard</h1>
 
-    <div v-if="loading" class="text-gray-500">Loading...</div>
+    <!-- Buttons -->
+    <div class="flex flex-row gap-4 my-4">
+      <button
+        class="flex items-center justify-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl hover:bg-amber-200 cursor-pointer text-primary font-bold"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+          />
+        </svg>
+        <span class="text-xs leading-none uppercase">manual booking</span>
+      </button>
+      <button
+        class="flex items-center justify-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl hover:bg-amber-200 cursor-pointer text-primary font-bold"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+          />
+        </svg>
+        <span class="text-xs leading-none uppercase">set time extension</span>
+      </button>
+    </div>
+
+    <!-- Loading/Error -->
+    <div v-if="loading" class="text-secondary">Loading...</div>
     <div v-else-if="error" class="text-red-600">{{ error }}</div>
 
-    <div v-else class="relative overflow-x-auto shadow-md sm:rounded-lg">
+    <!-- Table -->
+    <div v-else class="relative overflow-x-auto shadow-2xl sm:rounded-lg">
       <table class="min-w-full text-sm text-left">
-        <thead class="text-xs uppercase bg-green-950 text-white text-center">
+        <thead class="text-xs uppercase bg-secondary text-primary text-center">
           <tr>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Date</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Time Range</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Name</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Contact</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Email</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Total</th>
-            <th scope="col" class="px-6 py-3 whitespace-nowrap">Status</th>
+            <th
+              class="px-6 py-3 whitespace-nowrap cursor-pointer select-none"
+              @click="sort('status')"
+            >
+              <div class="flex items-center justify-center gap-1">
+                Status
+                <span v-if="sortKey === 'status'" class="text-xs text-primary">
+                  {{ sortAsc ? '▲' : '▼' }}
+                </span>
+              </div>
+            </th>
+            <th
+              class="px-6 py-3 whitespace-nowrap cursor-pointer select-none"
+              @click="sort('date')"
+            >
+              <div class="flex items-center justify-center gap-1">
+                Date
+                <span v-if="sortKey === 'date'" class="text-xs text-primary">
+                  {{ sortAsc ? '▲' : '▼' }}
+                </span>
+              </div>
+            </th>
+            <th
+              class="px-6 py-3 whitespace-nowrap cursor-pointer select-none"
+              @click="sort('timeRange')"
+            >
+              <div class="flex items-center justify-center gap-1">
+                Time Range
+                <span v-if="sortKey === 'timeRange'" class="text-xs text-primary">
+                  {{ sortAsc ? '▲' : '▼' }}
+                </span>
+              </div>
+            </th>
+            <th class="px-6 py-3 whitespace-nowrap">Name</th>
+            <th class="px-6 py-3 whitespace-nowrap">Contact</th>
+            <th class="px-6 py-3 whitespace-nowrap">Email</th>
+            <th class="px-6 py-3 whitespace-nowrap">Total</th>
           </tr>
         </thead>
 
         <tbody>
           <tr
-            v-for="booking in bookings"
+            v-for="booking in sortedBookings"
             :key="booking.id"
-            class="bg-amber-100 text-green-900 text-xs font-medium"
+            class="text-primary text-xs font-medium bg-secondary"
           >
+            <td class="px-6 py-4 text-center">
+              <template v-if="booking.status === 'pending'">
+                <div class="rounded-4xl bg-amber-400">
+                  <select
+                    v-model="booking.status"
+                    @change="handleStatusChange(booking, booking.status)"
+                    class="px-2 py-1 rounded-4xl text-white border-none outline-none uppercase bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="pending" class="text-black">Pending</option>
+                    <option value="rejected" class="text-black">Reject</option>
+                    <option value="reserved" class="text-black">Reserve</option>
+                  </select>
+                </div>
+              </template>
+              <template v-else>
+                <div
+                  :class="{
+                    'bg-red-400': booking.status === 'rejected',
+                    'bg-green-400': booking.status === 'reserved',
+                  }"
+                  class="px-2 py-1 rounded-4xl"
+                >
+                  <span class="text-white uppercase">
+                    {{ booking.status ?? '-' }}
+                  </span>
+                </div>
+              </template>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(booking.date) }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
               {{ formatSlotRange(booking.startSlot, booking.endSlot) }}
@@ -34,36 +127,12 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ booking.contactNumber ?? '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ booking.email ?? '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap">₱{{ booking.totalPrice ?? 0 }}</td>
-            <td class="px-6 py-4 text-center">
-              <template v-if="booking.status === 'pending'">
-                <select
-                  v-model="booking.status"
-                  @change="handleStatusChange(booking, booking.status)"
-                  class="px-2 py-1 rounded-4xl text-white border-none outline-none uppercase bg-amber-400 focus:outline-none cursor-pointer"
-                >
-                  <option value="pending" class="text-white">Pending</option>
-                  <option value="rejected" class="text-white">Reject</option>
-                  <option value="reserved" class="text-white">Reserve</option>
-                </select>
-              </template>
-              <template v-else>
-                <span
-                  class="px-2 py-1 rounded-4xl text-white uppercase"
-                  :class="{
-                    'bg-red-400': booking.status === 'rejected',
-                    'bg-green-400': booking.status === 'reserved',
-                  }"
-                >
-                  {{ booking.status ?? '-' }}
-                </span>
-              </template>
-            </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="bookings.length === 0 && !loading" class="mt-4 text-gray-600">
+    <div v-if="bookings.length === 0 && !loading" class="mt-4 text-secondary">
       No bookings found.
     </div>
   </div>
@@ -77,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import type { BookingSlot, BookingObject } from '@/stores/booking'
 import BookingStatusModal from '@/components/BookingConfirmationModal.vue'
 
@@ -93,6 +162,9 @@ const error = ref<string | null>(null)
 const statusModal = ref(false)
 const selectedBooking = ref<BookingRecord | null>(null)
 const pendingStatus = ref<string | null>(null)
+
+const sortKey = ref<'status' | 'date' | 'timeRange' | null>(null)
+const sortAsc = ref(true)
 
 interface RawBooking {
   id: number
@@ -145,6 +217,43 @@ function formatSlotRange(start: BookingSlot | null, end: BookingSlot | null) {
   if (!start || !end) return '-'
   return `${start.label.split(' - ')[0]} - ${end.endLabel}`
 }
+
+// Sorting function
+const sort = (key: 'status' | 'date' | 'timeRange') => {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+
+const sortedBookings = computed(() => {
+  if (!sortKey.value) return bookings.value
+  return [...bookings.value].sort((a, b) => {
+    let valA: string | number = ''
+    let valB: string | number = ''
+
+    switch (sortKey.value) {
+      case 'status':
+        valA = a.status ?? ''
+        valB = b.status ?? ''
+        break
+      case 'date':
+        valA = a.date ? new Date(a.date).getTime() : 0
+        valB = b.date ? new Date(b.date).getTime() : 0
+        break
+      case 'timeRange':
+        valA = a.startSlot?.start || 0
+        valB = b.startSlot?.start || 0
+        break
+    }
+
+    if (valA < valB) return sortAsc.value ? -1 : 1
+    if (valA > valB) return sortAsc.value ? 1 : -1
+    return 0
+  })
+})
 
 onMounted(fetchBookings)
 

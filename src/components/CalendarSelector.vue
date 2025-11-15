@@ -130,6 +130,7 @@ const calendarDays = computed(() => {
 
 const selectDate = (d: Date) => {
   bookingStore.selectedDate = d
+  bookingStore.bookingObject.date = d
   bookingStore.bookingObject.startSlot = null
   bookingStore.bookingObject.endSlot = null
   bookingStore.bookingObject.totalPrice = 0

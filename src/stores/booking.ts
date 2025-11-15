@@ -16,6 +16,7 @@ export type BookingObject = {
   endSlot: BookingSlot | null
   totalPrice: number
   name: string | null
+  email: string | null
   contactNumber: string | null
 }
 
@@ -60,6 +61,7 @@ export const useBookingStore = defineStore('booking', () => {
     endSlot: null,
     totalPrice: 0,
     name: null,
+    email: null,
     contactNumber: null,
   })
 
@@ -70,11 +72,38 @@ export const useBookingStore = defineStore('booking', () => {
     return `${startLabel} - ${endLabel}`
   })
 
+  const confirmBooking = async () => {
+    const year = bookingObject.value.date.getFullYear()
+    const month = (bookingObject.value.date.getMonth() + 1).toString().padStart(2, '0')
+    const day = bookingObject.value.date.getDate().toString().padStart(2, '0')
+    const formattedDateLocal = `${year}-${month}-${day}`
+
+    const payload = {
+      ...bookingObject.value,
+      date: formattedDateLocal,
+    }
+
+    try {
+      const response = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      console.log('Booking response:', result)
+      return result
+    } catch (err) {
+      console.error('Error sending booking:', err)
+      throw err
+    }
+  }
+
   return {
     selectedDate,
     allSlots,
     availableSlots,
     bookingObject,
     timeRangeLabel,
+    confirmBooking,
   }
 })

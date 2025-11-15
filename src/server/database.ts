@@ -9,21 +9,19 @@ const pool = new Pool({
 /* INITIALIZE TABLE */
 const createTable = async () => {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS bookings (
+    CREATE TABLE bookings (
       id SERIAL PRIMARY KEY,
-      date TIMESTAMP NOT NULL,
+      date DATE NOT NULL,
       start_slot JSONB,
       end_slot JSONB,
-      total_price REAL NOT NULL,
+      total_price NUMERIC(10, 2),
       name TEXT,
       contact_number TEXT,
       email TEXT,
-      status TEXT CHECK (status IN ('pending', 'available', 'reserved', 'rejected')) DEFAULT 'pending',
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      status TEXT DEFAULT 'pending',
+      created_at TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'Asia/Manila')
     );
   `)
-
-  console.log('✅ Bookings table is ready')
 }
 
 createTable().catch(console.error)

@@ -29,7 +29,7 @@
       :show="showModal"
       :bookingData="bookingStore.bookingObject"
       @close="closeModal"
-      @confirm="confirmBooking"
+      @confirm="confirmBookingHandler"
     />
   </Transition>
 </template>
@@ -41,7 +41,7 @@ import BookingButton from '@/components/BookingButton.vue'
 import Time from '@/components/TimeSelector.vue'
 import ErrorAlert from '@/components/ErrorAlert.vue'
 import BookingModal from '@/components/BookingModal.vue'
-import { useBookingStore, type BookingObject } from '@/stores/booking'
+import { useBookingStore } from '@/stores/booking'
 import { ref } from 'vue'
 
 const showModal = ref(false)
@@ -55,20 +55,11 @@ const closeModal = () => {
   showModal.value = false
 }
 
-const confirmBooking = async (data: BookingObject) => {
-  showModal.value = false
-
+const confirmBookingHandler = async () => {
   try {
-    const response = await fetch('/api/book', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-
-    const result = await response.json()
-    console.log('Booking response:', result)
+    await bookingStore.confirmBooking()
   } catch (err) {
-    console.error('Error sending booking:', err)
+    console.error('Booking failed:', err)
   }
 }
 </script>
