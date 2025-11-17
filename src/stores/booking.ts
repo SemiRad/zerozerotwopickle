@@ -23,6 +23,7 @@ export type BookingObject = {
 
 export const useBookingStore = defineStore('booking', () => {
   const selectedDate = ref<Date>(new Date())
+  const bookedSlots = ref([])
 
   const allSlots = ref<BookingSlot[]>([])
   for (let hour = 6; hour < 24; hour++) {
@@ -134,6 +135,18 @@ export const useBookingStore = defineStore('booking', () => {
     }
   }
 
+  const fetchBookedSlots = async () => {
+    const year = selectedDate.value.getFullYear()
+    const month = (selectedDate.value.getMonth() + 1).toString().padStart(2, '0')
+    const day = selectedDate.value.getDate().toString().padStart(2, '0')
+    const formattedDate = `${year}-${month}-${day}`
+
+    const res = await fetch(`/api/booking?date=${formattedDate}`)
+    bookedSlots.value = await res.json()
+
+    console.log(bookedSlots.value)
+  }
+
   return {
     selectedDate,
     allSlots,
@@ -144,5 +157,6 @@ export const useBookingStore = defineStore('booking', () => {
     resetBookingObject,
     confirmBooking,
     confirmManualBooking,
+    fetchBookedSlots,
   }
 })

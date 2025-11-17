@@ -134,6 +134,9 @@ const selectDate = (d: Date) => {
   bookingStore.bookingObject.startSlot = null
   bookingStore.bookingObject.endSlot = null
   bookingStore.bookingObject.totalPrice = 0
+
+  bookingStore.fetchBookedSlots()
+
   showCalendar.value = false
 }
 
