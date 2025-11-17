@@ -1,4 +1,5 @@
 <template>
+  <NotifyComponent target="admin" />
   <div class="admin-page p-6 font-inter">
     <h1 class="text-2xl font-bold mb-4 uppercase text-center text-secondary">Dashboard</h1>
 
@@ -6,6 +7,7 @@
     <div class="flex flex-row gap-4 my-4">
       <button
         class="flex items-center justify-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl hover:bg-amber-200 cursor-pointer text-primary font-bold"
+        @click="showManualBookingModal"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -143,12 +145,24 @@
     @close="closeStatusModal"
     @confirm="confirmStatus"
   />
+
+  <ManualBooking
+    :show="manualBookingModal"
+    @close="closeManualBookingModal"
+    @confirm="confirmManualBookingModal"
+  />
 </template>
 
 <script setup lang="ts">
+import NotifyComponent from '@/components/NotifyComponent.vue'
+import BookingStatusModal from '@/components/BookingConfirmationModal.vue'
+import ManualBooking from '@/components/ManualBooking.vue'
+
 import { ref, onMounted, computed } from 'vue'
 import type { BookingSlot, BookingObject } from '@/stores/booking'
-import BookingStatusModal from '@/components/BookingConfirmationModal.vue'
+
+import { useBookingStore } from '@/stores/booking'
+import { useNotifyStore } from '@/stores/notify'
 
 export type BookingRecord = BookingObject & {
   id: number
@@ -162,7 +176,10 @@ const error = ref<string | null>(null)
 const statusModal = ref(false)
 const selectedBooking = ref<BookingRecord | null>(null)
 const pendingStatus = ref<string | null>(null)
+const manualBookingModal = ref(false)
 
+const bookingStore = useBookingStore()
+const notify = useNotifyStore()
 const sortKey = ref<'status' | 'date' | 'timeRange' | null>(null)
 const sortAsc = ref(true)
 
@@ -201,6 +218,11 @@ const fetchBookings = async () => {
     const rawData = await res.json()
     bookings.value = rawData.map(parseBooking)
   } catch (err: unknown) {
+    notify.notify(
+      err instanceof Error ? err.message : 'Unknown error fetching bookings',
+      'error',
+      'admin',
+    )
     error.value = err instanceof Error ? err.message : 'Unknown error fetching bookings'
   } finally {
     loading.value = false
@@ -257,6 +279,7 @@ const sortedBookings = computed(() => {
 
 onMounted(fetchBookings)
 
+// --- Booking Status Handling ---
 const handleStatusChange = (booking: BookingRecord, newStatus: string) => {
   pendingStatus.value = newStatus
   selectedBooking.value = booking
@@ -272,17 +295,18 @@ const closeStatusModal = () => {
 
 const confirmStatus = async () => {
   if (selectedBooking.value && pendingStatus.value) {
+    statusModal.value = false
     try {
       await updateBookingStatus(selectedBooking.value, pendingStatus.value)
       selectedBooking.value.status = pendingStatus.value
-      console.log(`Booking ${selectedBooking.value.id} changed to: ${pendingStatus.value}`)
-    } catch (err) {
+      notify.notify('Booking successfully updated!', 'success', 'admin')
+    } catch (err: unknown) {
+      notify.notify('Failed to update booking status.', 'error', 'admin')
       console.error('Error confirming status:', err)
     }
   }
   selectedBooking.value = null
   pendingStatus.value = null
-  statusModal.value = false
 }
 
 const updateBookingStatus = async (booking: BookingRecord, newStatus: string) => {
@@ -293,6 +317,27 @@ const updateBookingStatus = async (booking: BookingRecord, newStatus: string) =>
   })
   if (!response.ok) throw new Error(`Failed to update status (${response.status})`)
   return await response.json()
+}
+
+// --- Manual Booking Handling ---
+const showManualBookingModal = () => {
+  manualBookingModal.value = true
+}
+
+const closeManualBookingModal = () => {
+  manualBookingModal.value = false
+}
+
+const confirmManualBookingModal = async () => {
+  closeManualBookingModal()
+  try {
+    await bookingStore.confirmManualBooking()
+    notify.notify('Booking successfully submitted!', 'success', 'admin')
+    await fetchBookings()
+  } catch (err: unknown) {
+    notify.notify('Manual booking failed.', 'error', 'admin')
+    console.error('Booking failed:', err)
+  }
 }
 </script>
 

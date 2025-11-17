@@ -4,12 +4,13 @@
       <div
         v-for="slot in formattedSlots"
         :key="slot.start"
-        class="p-4 border border-green-950 rounded-lg cursor-pointer text-left transition duration-300"
+        class="p-4 border rounded-lg text-left transition duration-300 cursor-pointer"
         :class="{
           'bg-green-950 text-white border-transparent': isInRange(slot),
-          'bg-gray-100 hover:bg-amber-50': !isInRange(slot),
+          'bg-gray-100 hover:bg-amber-50': !isInRange(slot) && isSlotEnabled(slot),
+          'bg-gray-200 text-gray-400 cursor-not-allowed': !isSlotEnabled(slot),
         }"
-        @click="handleSlotClick(slot)"
+        @click="isSlotEnabled(slot) && handleSlotClick(slot)"
       >
         <div class="font-semibold text-base sm:text-base lg:text-lg">
           {{ slot.label }}
@@ -23,11 +24,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useBookingStore } from '@/stores/booking'
-import { useErrorStore } from '@/stores/error'
+import { useNotifyStore } from '@/stores/notify'
 import type { BookingSlot } from '@/stores/booking'
 
 const bookingStore = useBookingStore()
-const errorStore = useErrorStore()
+const notify = useNotifyStore()
 
 const formatTime = (hour: number): string => {
   if (hour === 0 || hour === 24) return '12:00 AM'
@@ -37,7 +38,7 @@ const formatTime = (hour: number): string => {
 }
 
 const formattedSlots = computed(() =>
-  bookingStore.availableSlots.map((slot) => ({
+  bookingStore.allSlots.map((slot) => ({
     ...slot,
     label: `${formatTime(slot.start)} - ${formatTime(slot.end)}`,
   })),
@@ -49,6 +50,10 @@ const isInRange = (slot: BookingSlot): boolean => {
   return slot.start >= startSlot.start && slot.end <= endSlot.end
 }
 
+const isSlotEnabled = (slot: BookingSlot) => {
+  return bookingStore.availableSlots.some((s) => s.start === slot.start && s.end === slot.end)
+}
+
 const handleSlotClick = (slot: BookingSlot) => {
   const booking = bookingStore.bookingObject
   const { startSlot, endSlot } = booking
@@ -57,6 +62,13 @@ const handleSlotClick = (slot: BookingSlot) => {
     booking.startSlot = slot
     booking.endSlot = slot
     booking.totalPrice = slot.cost
+    return
+  }
+
+  if (endSlot && slot.start === endSlot.start && slot.end === endSlot.end) {
+    booking.startSlot = null
+    booking.endSlot = null
+    booking.totalPrice = 0
     return
   }
 
@@ -71,7 +83,7 @@ const handleSlotClick = (slot: BookingSlot) => {
   const newEnd = Math.max(startSlot.end, slot.end)
 
   if (newEnd - newStart > 6) {
-    errorStore.setError('You can only book up to 6 hours')
+    notify.notify('You can only book up to 6 hours', 'error', 'home')
     return
   }
 
@@ -80,7 +92,6 @@ const handleSlotClick = (slot: BookingSlot) => {
 
   booking.startSlot = rangeSlots[0] ?? null
   booking.endSlot = rangeSlots[rangeSlots.length - 1] ?? null
-
   booking.totalPrice = rangeSlots.reduce((sum, s) => sum + s.cost, 0)
 }
 </script>

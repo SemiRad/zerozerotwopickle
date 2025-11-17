@@ -18,6 +18,7 @@ export type BookingObject = {
   name: string | null
   email: string | null
   contactNumber: string | null
+  status?: string | null
 }
 
 export const useBookingStore = defineStore('booking', () => {
@@ -54,7 +55,7 @@ export const useBookingStore = defineStore('booking', () => {
     return allSlots.value
   })
 
-  const bookingObject = ref<BookingObject>({
+  const defaultBookingObject = () => ({
     id: null,
     date: selectedDate.value,
     startSlot: null,
@@ -63,7 +64,10 @@ export const useBookingStore = defineStore('booking', () => {
     name: null,
     email: null,
     contactNumber: null,
+    status: null,
   })
+
+  const bookingObject = ref<BookingObject>(defaultBookingObject())
 
   const timeRangeLabel = computed(() => {
     if (!bookingObject.value.startSlot || !bookingObject.value.endSlot) return '-'
@@ -71,6 +75,10 @@ export const useBookingStore = defineStore('booking', () => {
     const endLabel = bookingObject.value.endSlot.endLabel
     return `${startLabel} - ${endLabel}`
   })
+
+  const resetBookingObject = () => {
+    bookingObject.value = defaultBookingObject()
+  }
 
   const confirmBooking = async () => {
     const year = bookingObject.value.date.getFullYear()
@@ -81,6 +89,7 @@ export const useBookingStore = defineStore('booking', () => {
     const payload = {
       ...bookingObject.value,
       date: formattedDateLocal,
+      status: 'pending',
     }
 
     try {
@@ -98,12 +107,42 @@ export const useBookingStore = defineStore('booking', () => {
     }
   }
 
+  const confirmManualBooking = async () => {
+    const year = bookingObject.value.date.getFullYear()
+    const month = (bookingObject.value.date.getMonth() + 1).toString().padStart(2, '0')
+    const day = bookingObject.value.date.getDate().toString().padStart(2, '0')
+    const formattedDateLocal = `${year}-${month}-${day}`
+
+    const payload = {
+      ...bookingObject.value,
+      date: formattedDateLocal,
+      status: 'reserved',
+    }
+
+    try {
+      const response = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      console.log('Manual booking response:', result)
+      return result
+    } catch (err) {
+      console.error('Error sending manual booking:', err)
+      throw err
+    }
+  }
+
   return {
     selectedDate,
     allSlots,
     availableSlots,
+    defaultBookingObject,
     bookingObject,
     timeRangeLabel,
+    resetBookingObject,
     confirmBooking,
+    confirmManualBooking,
   }
 })

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="show"
+    v-if="props.show"
     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 font-inter"
   >
     <div class="bg-white rounded-2xl p-6 w-96 shadow-2xl transform transition-all scale-100">
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   show: boolean
   newStatus: string
 }>()

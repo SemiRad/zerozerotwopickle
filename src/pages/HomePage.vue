@@ -1,5 +1,5 @@
 <template>
-  <ErrorAlert />
+  <NotifyComponent target="home" />
 
   <div class="grid grid-cols-1 lg:grid-cols-2 mb-4 p-5">
     <div>
@@ -39,13 +39,17 @@ import Calendar from '@/components/CalendarSelector.vue'
 import ImageCarousel from '@/components/ImageCarousel.vue'
 import BookingButton from '@/components/BookingButton.vue'
 import Time from '@/components/TimeSelector.vue'
-import ErrorAlert from '@/components/ErrorAlert.vue'
 import BookingModal from '@/components/BookingModal.vue'
+
 import { useBookingStore } from '@/stores/booking'
+import { useNotifyStore } from '@/stores/notify'
+
 import { ref } from 'vue'
+import NotifyComponent from '@/components/NotifyComponent.vue'
 
 const showModal = ref(false)
 const bookingStore = useBookingStore()
+const notify = useNotifyStore()
 
 const openModal = () => {
   showModal.value = true
@@ -53,12 +57,19 @@ const openModal = () => {
 
 const closeModal = () => {
   showModal.value = false
+  clearBooking()
+}
+
+const clearBooking = () => {
+  bookingStore.resetBookingObject()
 }
 
 const confirmBookingHandler = async () => {
   try {
     await bookingStore.confirmBooking()
+    notify.notify('Booking successfully submitted!', 'success', 'home')
   } catch (err) {
+    notify.notify('Booking failed. Please try again.', 'error', 'home')
     console.error('Booking failed:', err)
   }
 }

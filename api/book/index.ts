@@ -15,14 +15,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     // Save a new booking
-    const { date, startSlot, endSlot, totalPrice, name, contactNumber, email } = req.body
+    const { date, startSlot, endSlot, totalPrice, name, contactNumber, email, status } = req.body
 
     try {
       const query = `
-        INSERT INTO bookings (date, start_slot, end_slot, total_price, name, contact_number, email, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
-      `
-      await pool.query(query, [
+      INSERT INTO bookings (date, start_slot, end_slot, total_price, name, contact_number, email, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `
+      const result = await pool.query(query, [
         date,
         JSON.stringify(startSlot),
         JSON.stringify(endSlot),
@@ -30,8 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         name,
         contactNumber,
         email,
+        status,
       ])
-      return res.status(200).json({ message: 'Booking saved successfully!' })
+      return res
+        .status(200)
+        .json({ message: 'Booking saved successfully!', booking: result.rows[0] })
     } catch (err) {
       console.error('Error saving booking:', err)
       return res.status(500).json({ error: 'Failed to save booking.' })

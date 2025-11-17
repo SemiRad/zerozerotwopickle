@@ -9,7 +9,7 @@ const pool = new Pool({
 /* INITIALIZE TABLE */
 const createTable = async () => {
   await pool.query(`
-    CREATE TABLE bookings (
+    CREATE TABLE IF NOT EXISTS bookings (
       id SERIAL PRIMARY KEY,
       date DATE NOT NULL,
       start_slot JSONB,
