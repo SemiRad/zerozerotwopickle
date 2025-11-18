@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center w-full font-roboto p-5">
+  <div class="flex justify-center w-full font-roboto p-5 opacity-100">
     <div class="w-1/3 lg:w-3/4">
       <button
         class="uppercase font-bold text-white w-full py-2.5 rounded-xl shadow-md transition-all duration-300 ease-in-out cursor-pointer"

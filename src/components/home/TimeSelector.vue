@@ -1,19 +1,32 @@
 <template>
   <div class="p-4 w-full font-roboto">
-    <div v-if="bookingStore.loadingBookedSlots" class="flex justify-center items-center py-8">
-      <div class="w-8 h-8 border-4 border-secondary border-t-tertiary rounded-full animate-spin"></div>
+    <!-- Skeleton Placeholder Loading -->
+    <div
+      v-if="bookingStore.loadingBookedSlots"
+      class="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2.5"
+    >
+      <div
+        v-for="n in skeletonCount"
+        :key="'skeleton-' + n"
+        class="p-4 border-none rounded-lg bg-gray-200 animate-pulse"
+      >
+        <div class="h-4 w-1/3 bg-gray-300 rounded mb-2"></div>
+        <div class="h-4 w-1/4 bg-gray-300 rounded mb-1.5"></div>
+      </div>
     </div>
 
+    <!-- Actual Slots -->
     <div v-else class="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2.5">
       <div
         v-for="slot in formattedSlots"
         :key="slot.start"
-        class="p-4 border rounded-lg text-left transition duration-300"
+        class="p-4 rounded-lg text-left transition duration-300"
         :class="{
           'cursor-pointer': isSlotEnabled(slot) && !isBooked(slot),
           'cursor-not-allowed': !isSlotEnabled(slot) || isBooked(slot),
           'bg-green-950 text-white border-transparent': isInRange(slot),
-          'bg-gray-100 hover:bg-amber-50': !isInRange(slot) && isSlotEnabled(slot) && !isBooked(slot),
+          'bg-gray-100 hover:bg-amber-50':
+            !isInRange(slot) && isSlotEnabled(slot) && !isBooked(slot),
           'bg-gray-200 text-gray-400': !isSlotEnabled(slot) || isBooked(slot),
         }"
         @click="isSlotEnabled(slot) && !isBooked(slot) && handleSlotClick(slot)"
@@ -26,7 +39,10 @@
           ₱{{ slot.cost }}
         </div>
 
-        <div v-if="isBooked(slot)" class="text-xs sm:text-sm lg:text-sm text-primary">
+        <div
+          v-if="isBooked(slot)"
+          class="text-xs sm:text-sm lg:text-sm text-primary font-semibold opacity-75"
+        >
           RESERVED
         </div>
       </div>
@@ -42,6 +58,8 @@ import type { BookingSlot } from '@/stores/booking'
 
 const bookingStore = useBookingStore()
 const notify = useNotifyStore()
+
+const skeletonCount = 18
 
 onMounted(() => {
   bookingStore.fetchBookedSlots()
@@ -69,7 +87,7 @@ const isInRange = (slot: BookingSlot): boolean => {
 
 const isSlotEnabled = (slot: BookingSlot) => {
   const isAvailable = bookingStore.availableSlots.some(
-    (s) => s.start === slot.start && s.end === slot.end
+    (s) => s.start === slot.start && s.end === slot.end,
   )
 
   return isAvailable && !isBooked(slot)

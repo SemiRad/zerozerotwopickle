@@ -184,6 +184,6 @@ export const useBookingStore = defineStore('booking', () => {
     confirmManualBooking,
     fetchBookedSlots,
     bookedSlotHours,
-    loadingBookedSlots
+    loadingBookedSlots,
   }
 })

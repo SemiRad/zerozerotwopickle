@@ -35,17 +35,17 @@
 </template>
 
 <script setup lang="ts">
-import Calendar from '@/components/CalendarSelector.vue'
-import ImageCarousel from '@/components/ImageCarousel.vue'
-import BookingButton from '@/components/BookingButton.vue'
-import Time from '@/components/TimeSelector.vue'
-import BookingModal from '@/components/BookingModal.vue'
+import Calendar from '@/components/home/CalendarSelector.vue'
+import ImageCarousel from '@/components/home/ImageCarousel.vue'
+import BookingButton from '@/components/home/BookingButton.vue'
+import Time from '@/components/home/TimeSelector.vue'
+import BookingModal from '@/components/home/BookingModal.vue'
 
 import { useBookingStore } from '@/stores/booking'
 import { useNotifyStore } from '@/stores/notify'
 
 import { ref } from 'vue'
-import NotifyComponent from '@/components/NotifyComponent.vue'
+import NotifyComponent from '@/components/global/NotifyComponent.vue'
 
 const showModal = ref(false)
 const bookingStore = useBookingStore()
@@ -66,9 +66,10 @@ const clearBooking = () => {
 
 const confirmBookingHandler = async () => {
   try {
-    await bookingStore.confirmBooking()
-    .then(() => notify.notify('Booking successfully submitted!', 'success', 'home'))
-    .then(() => bookingStore.fetchBookedSlots())
+    await bookingStore
+      .confirmBooking()
+      .then(() => notify.notify('Booking successfully submitted!', 'success', 'home'))
+      .then(() => bookingStore.fetchBookedSlots())
   } catch (err) {
     notify.notify('Booking failed. Please try again.', 'error', 'home')
     console.error('Booking failed:', err)

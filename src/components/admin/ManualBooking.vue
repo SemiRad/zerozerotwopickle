@@ -78,8 +78,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useBookingStore } from '@/stores/booking.ts'
-import DatePicker from './DatePicker.vue'
-import TimePicker from './TimePicker.vue'
+import DatePicker from '@/components/admin/DatePicker.vue'
+import TimePicker from '@/components/admin/TimePicker.vue'
 
 const bookingStore = useBookingStore()
 const book = bookingStore.bookingObject

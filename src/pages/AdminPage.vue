@@ -23,6 +23,7 @@
       </button>
       <button
         class="flex items-center justify-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl hover:bg-amber-200 cursor-pointer text-primary font-bold"
+        @click="showTimeExtensionModal"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -39,11 +40,57 @@
     </div>
 
     <!-- Loading/Error -->
-    <div v-if="loading" class="text-secondary">Loading...</div>
-    <div v-else-if="error" class="text-red-600">{{ error }}</div>
+    <!-- Skeleton Loader -->
+    <div v-if="loading" class="relative overflow-x-auto shadow-2xl sm:rounded-lg table-scroll">
+      <table class="min-w-full text-sm text-left">
+        <thead class="text-xs uppercase bg-secondary text-primary text-center">
+          <tr>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Date</th>
+            <th class="px-6 py-3">Time Range</th>
+            <th class="px-6 py-3">Name</th>
+            <th class="px-6 py-3">Contact</th>
+            <th class="px-6 py-3">Email</th>
+            <th class="px-6 py-3">Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="i in 3" :key="'sk-' + i" class="animate-pulse bg-secondary">
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-16"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-20"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-24"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-28"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-24"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-32"></div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="bg-gray-300 rounded h-4 w-12"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Table -->
-    <div v-else class="relative overflow-x-auto shadow-2xl sm:rounded-lg">
+    <div v-else class="relative overflow-x-auto shadow-2xl sm:rounded-lg table-scroll">
       <table class="min-w-full text-sm text-left">
         <thead class="text-xs uppercase bg-secondary text-primary text-center">
           <tr>
@@ -151,18 +198,25 @@
     @close="closeManualBookingModal"
     @confirm="confirmManualBookingModal"
   />
+
+  <TimeExtensionModal
+    :show="timeExtensionModal"
+    @close="closeTimeExtensionModal"
+    @confirm="confirmTimeExtensionModal"
+  />
 </template>
 
 <script setup lang="ts">
-import NotifyComponent from '@/components/NotifyComponent.vue'
-import BookingStatusModal from '@/components/BookingConfirmationModal.vue'
-import ManualBooking from '@/components/ManualBooking.vue'
+import NotifyComponent from '@/components/global/NotifyComponent.vue'
+import BookingStatusModal from '@/components/admin/BookingStatusModal.vue'
+import ManualBooking from '@/components/admin/ManualBooking.vue'
 
 import { ref, onMounted, computed } from 'vue'
 import type { BookingSlot, BookingObject } from '@/stores/booking'
 
 import { useBookingStore } from '@/stores/booking'
 import { useNotifyStore } from '@/stores/notify'
+import TimeExtensionModal from '@/components/admin/TimeExtensionModal.vue'
 
 export type BookingRecord = BookingObject & {
   id: number
@@ -171,12 +225,15 @@ export type BookingRecord = BookingObject & {
 }
 
 const bookings = ref<BookingRecord[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
-const statusModal = ref(false)
 const selectedBooking = ref<BookingRecord | null>(null)
+
+const error = ref<string | null>(null)
 const pendingStatus = ref<string | null>(null)
+
+const loading = ref(true)
+const statusModal = ref(false)
 const manualBookingModal = ref(false)
+const timeExtensionModal = ref(false)
 
 const bookingStore = useBookingStore()
 const notify = useNotifyStore()
@@ -339,11 +396,42 @@ const confirmManualBookingModal = async () => {
     console.error('Booking failed:', err)
   }
 }
+
+// --- Time Extension Handling ---
+const showTimeExtensionModal = () => {
+  timeExtensionModal.value = true
+}
+
+const closeTimeExtensionModal = () => {
+  timeExtensionModal.value = false
+}
+
+const confirmTimeExtensionModal = () => {
+  timeExtensionModal.value = false
+  console.log('placeholder for confirm')
+}
 </script>
 
 <style scoped>
 .admin-page {
   max-width: 1100px;
   margin: 0 auto;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 10px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>
