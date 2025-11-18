@@ -1,34 +1,51 @@
 <template>
   <div class="p-4 w-full font-roboto">
-    <div class="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2.5">
+    <div v-if="bookingStore.loadingBookedSlots" class="flex justify-center items-center py-8">
+      <div class="w-8 h-8 border-4 border-secondary border-t-tertiary rounded-full animate-spin"></div>
+    </div>
+
+    <div v-else class="grid grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2.5">
       <div
         v-for="slot in formattedSlots"
         :key="slot.start"
-        class="p-4 border rounded-lg text-left transition duration-300 cursor-pointer"
+        class="p-4 border rounded-lg text-left transition duration-300"
         :class="{
+          'cursor-pointer': isSlotEnabled(slot) && !isBooked(slot),
+          'cursor-not-allowed': !isSlotEnabled(slot) || isBooked(slot),
           'bg-green-950 text-white border-transparent': isInRange(slot),
-          'bg-gray-100 hover:bg-amber-50': !isInRange(slot) && isSlotEnabled(slot),
-          'bg-gray-200 text-gray-400 cursor-not-allowed': !isSlotEnabled(slot),
+          'bg-gray-100 hover:bg-amber-50': !isInRange(slot) && isSlotEnabled(slot) && !isBooked(slot),
+          'bg-gray-200 text-gray-400': !isSlotEnabled(slot) || isBooked(slot),
         }"
-        @click="isSlotEnabled(slot) && handleSlotClick(slot)"
+        @click="isSlotEnabled(slot) && !isBooked(slot) && handleSlotClick(slot)"
       >
         <div class="font-semibold text-base sm:text-base lg:text-lg">
           {{ slot.label }}
         </div>
-        <div class="text-xs sm:text-sm lg:text-sm opacity-75">₱{{ slot.cost }}</div>
+
+        <div v-if="!isBooked(slot)" class="text-xs sm:text-sm lg:text-sm opacity-75">
+          ₱{{ slot.cost }}
+        </div>
+
+        <div v-if="isBooked(slot)" class="text-xs sm:text-sm lg:text-sm text-primary">
+          RESERVED
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/booking'
 import { useNotifyStore } from '@/stores/notify'
 import type { BookingSlot } from '@/stores/booking'
 
 const bookingStore = useBookingStore()
 const notify = useNotifyStore()
+
+onMounted(() => {
+  bookingStore.fetchBookedSlots()
+})
 
 const formatTime = (hour: number): string => {
   if (hour === 0 || hour === 24) return '12:00 AM'
@@ -51,7 +68,15 @@ const isInRange = (slot: BookingSlot): boolean => {
 }
 
 const isSlotEnabled = (slot: BookingSlot) => {
-  return bookingStore.availableSlots.some((s) => s.start === slot.start && s.end === slot.end)
+  const isAvailable = bookingStore.availableSlots.some(
+    (s) => s.start === slot.start && s.end === slot.end
+  )
+
+  return isAvailable && !isBooked(slot)
+}
+
+const isBooked = (slot: BookingSlot) => {
+  return bookingStore.bookedSlotHours.includes(slot.start)
 }
 
 const handleSlotClick = (slot: BookingSlot) => {

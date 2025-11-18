@@ -67,7 +67,8 @@ const clearBooking = () => {
 const confirmBookingHandler = async () => {
   try {
     await bookingStore.confirmBooking()
-    notify.notify('Booking successfully submitted!', 'success', 'home')
+    .then(() => notify.notify('Booking successfully submitted!', 'success', 'home'))
+    .then(() => bookingStore.fetchBookedSlots())
   } catch (err) {
     notify.notify('Booking failed. Please try again.', 'error', 'home')
     console.error('Booking failed:', err)

@@ -21,9 +21,15 @@ export type BookingObject = {
   status?: string | null
 }
 
+export type ApiBookingObject = {
+  start_slot: { start: number }
+  end_slot: { end: number }
+}
+
 export const useBookingStore = defineStore('booking', () => {
+  const loadingBookedSlots = ref(false)
   const selectedDate = ref<Date>(new Date())
-  const bookedSlots = ref([])
+  const bookedSlots = ref<ApiBookingObject[]>([])
 
   const allSlots = ref<BookingSlot[]>([])
   for (let hour = 6; hour < 24; hour++) {
@@ -100,7 +106,6 @@ export const useBookingStore = defineStore('booking', () => {
         body: JSON.stringify(payload),
       })
       const result = await response.json()
-      console.log('Booking response:', result)
       return result
     } catch (err) {
       console.error('Error sending booking:', err)
@@ -127,7 +132,6 @@ export const useBookingStore = defineStore('booking', () => {
         body: JSON.stringify(payload),
       })
       const result = await response.json()
-      console.log('Manual booking response:', result)
       return result
     } catch (err) {
       console.error('Error sending manual booking:', err)
@@ -136,16 +140,37 @@ export const useBookingStore = defineStore('booking', () => {
   }
 
   const fetchBookedSlots = async () => {
+    loadingBookedSlots.value = true
+
     const year = selectedDate.value.getFullYear()
     const month = (selectedDate.value.getMonth() + 1).toString().padStart(2, '0')
     const day = selectedDate.value.getDate().toString().padStart(2, '0')
     const formattedDate = `${year}-${month}-${day}`
 
-    const res = await fetch(`/api/booking?date=${formattedDate}`)
-    bookedSlots.value = await res.json()
-
-    console.log(bookedSlots.value)
+    try {
+      const res = await fetch(`/api/booking?date=${formattedDate}`)
+      bookedSlots.value = await res.json()
+    } catch (err) {
+      console.error('Error fetching booked slots:', err)
+      bookedSlots.value = []
+    } finally {
+      loadingBookedSlots.value = false
+    }
   }
+
+  const bookedSlotHours = computed(() => {
+    const hours: number[] = []
+
+    bookedSlots.value.forEach((b) => {
+      if (!b.start_slot || !b.end_slot) return
+
+      for (let h = b.start_slot.start; h < b.end_slot.end; h++) {
+        hours.push(h)
+      }
+    })
+
+    return hours
+  })
 
   return {
     selectedDate,
@@ -158,5 +183,7 @@ export const useBookingStore = defineStore('booking', () => {
     confirmBooking,
     confirmManualBooking,
     fetchBookedSlots,
+    bookedSlotHours,
+    loadingBookedSlots
   }
 })

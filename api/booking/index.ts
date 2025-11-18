@@ -14,8 +14,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       [date],
     )
 
-    console.log('Bookings for date:', date, result.rows)
-
     return res.status(200).json(result.rows)
   } catch (err) {
     console.error('Error fetching bookings:', err)
