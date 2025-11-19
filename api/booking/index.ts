@@ -10,7 +10,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM bookings WHERE date = $1 ORDER BY start_slot ASC',
+      `SELECT * 
+      FROM bookings 
+      WHERE date = $1 
+      AND status IN ('pending', 'reserved')
+      ORDER BY start_slot ASC`,
       [date],
     )
 

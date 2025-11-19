@@ -100,17 +100,25 @@ export const useBookingStore = defineStore('booking', () => {
     }
 
     try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const result = await response.json()
-      return result
-    } catch (err) {
-      console.error('Error sending booking:', err)
-      throw err
-    }
+        const response = await fetch('/api/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        const result = await response.json()
+
+        await fetch('/api/book/resend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingId: result.booking.id }),
+        })
+
+        return result
+      } catch (err) {
+        console.error('Error sending booking:', err)
+        throw err
+      }
   }
 
   const confirmManualBooking = async () => {

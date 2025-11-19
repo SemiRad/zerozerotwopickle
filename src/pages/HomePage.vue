@@ -66,13 +66,16 @@ const clearBooking = () => {
 
 const confirmBookingHandler = async () => {
   try {
-    await bookingStore
-      .confirmBooking()
-      .then(() => notify.notify('Booking successfully submitted!', 'success', 'home'))
-      .then(() => bookingStore.fetchBookedSlots())
+    bookingStore.loadingBookedSlots = true;
+
+    await bookingStore.confirmBooking();
+
+    notify.notify('Booking successfully submitted!', 'success', 'home');
+
+    await bookingStore.fetchBookedSlots();
   } catch (err) {
-    notify.notify('Booking failed. Please try again.', 'error', 'home')
-    console.error('Booking failed:', err)
+    notify.notify('Booking failed. Please try again.', 'error', 'home');
+    console.error('Booking failed:', err);
   }
-}
+};
 </script>
