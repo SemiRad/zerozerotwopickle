@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="show"
+    v-if="props.show"
     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 font-inter"
   >
     <div class="bg-white rounded-2xl p-6 w-96 shadow-2xl transform transition-all scale-100">
@@ -16,16 +16,11 @@
             <div class="grid grid-cols-2 text-sm mb-2">
               <div class="font-semibold space-y-2">
                 <p>Date:</p>
-                <p>Selected Slots:</p>
+                <p>Selected Time:</p>
               </div>
               <div class="space-y-2 text-right font-semibold">
                 <p>{{ formattedDate }}</p>
-                <p>{{ simplifiedSlots }}</p>
-                <div class="text-tiny text-gray-500">
-                  <p v-for="slot in bookingData?.timeSlots ?? []" :key="slot.start">
-                    {{ slot.label }}
-                  </p>
-                </div>
+                <p>{{ simplifiedSlotRange }}</p>
               </div>
             </div>
 
@@ -76,7 +71,7 @@
                 <p>Total Price:</p>
               </div>
               <div class="space-y-2 text-right font-semibold text-green-950">
-                <p>₱{{ bookingData?.totalPrice ?? 0 }}</p>
+                <p>₱{{ book.totalPrice ?? 0 }}</p>
               </div>
             </div>
 
@@ -114,9 +109,7 @@
 
             <div class="grid grid-cols-2 mb-6">
               <div class="font-semibold space-y-2 text-left">Total Price:</div>
-              <div class="text-right font-semibold text-green-950">
-                ₱{{ bookingData?.totalPrice ?? 0 }}
-              </div>
+              <div class="text-right font-semibold text-green-950">₱{{ book.totalPrice ?? 0 }}</div>
             </div>
 
             <div class="flex justify-end gap-3 text-sm">
@@ -161,7 +154,7 @@
             </p>
             <button
               class="px-4 py-2 rounded-md bg-green-950 text-white hover:bg-green-800 transition hover:cursor-pointer"
-              @click="finishBooking"
+              @click="closeBooking()"
             >
               Done
             </button>
@@ -173,23 +166,43 @@
 </template>
 
 <script setup lang="ts">
-import type { BookingObject } from '@/stores/booking.ts'
 import { ref, computed } from 'vue'
+import { useBookingStore } from '@/stores/booking.ts'
+
+const bookingStore = useBookingStore()
+const book = bookingStore.bookingObject
 
 const props = defineProps<{
   show: boolean
-  bookingData: BookingObject | null
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'confirm', data: BookingObject & { name: string; email: string; contactNumber: string }): void
+  (e: 'confirm'): void
 }>()
 
 const step = ref(1)
-const name = ref('')
-const email = ref('')
-const contactNumber = ref('')
+const name = computed({
+  get: () => book.name ?? '',
+  set: (val: string) => {
+    book.name = val
+  },
+})
+
+const email = computed({
+  get: () => book.email ?? '',
+  set: (val: string) => {
+    book.email = val
+  },
+})
+
+const contactNumber = computed({
+  get: () => book.contactNumber ?? '',
+  set: (val: string) => {
+    book.contactNumber = val
+  },
+})
+
 const showQRModal = ref(false)
 
 const nameError = ref(false)
@@ -206,15 +219,13 @@ const validateAndProceed = () => {
   }
 }
 
-const formattedDate = computed(() =>
-  props.bookingData?.date ? new Date(props.bookingData.date).toLocaleDateString() : '',
-)
+const formattedDate = computed(() => (book.date ? new Date(book.date).toLocaleDateString() : ''))
 
-const simplifiedSlots = computed(() => {
-  if (!props.bookingData || !props.bookingData.timeSlots.length) return ''
-  const first = props.bookingData.timeSlots[0]
-  const last = props.bookingData.timeSlots[props.bookingData.timeSlots.length - 1]
-  return `${first?.label.split(' - ')[0]} - ${last?.label.split(' - ')[1]}`
+const simplifiedSlotRange = computed(() => {
+  const start = book.startSlot
+  const end = book.endSlot
+  if (!start || !end) return ''
+  return `${start.label.split(' - ')[0]} - ${end.label.split(' - ')[1]}`
 })
 
 const goToPayment = () => {
@@ -223,22 +234,19 @@ const goToPayment = () => {
 
 const goToSuccess = () => {
   step.value = 3
+  finishBooking()
 }
 
 const finishBooking = () => {
-  if (props.bookingData) {
-    emit('confirm', {
-      ...props.bookingData,
-      name: name.value,
-      email: email.value,
-      contactNumber: contactNumber.value,
-    })
-    emit('close')
-  }
+  emit('confirm')
+}
+
+const closeBooking = () => {
+  emit('close')
 }
 </script>
 
-<style lang="css" scoped>
+<style scoped>
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

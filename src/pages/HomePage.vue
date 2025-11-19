@@ -1,5 +1,5 @@
 <template>
-  <ErrorAlert />
+  <NotifyComponent target="home" />
 
   <div class="grid grid-cols-1 lg:grid-cols-2 mb-4 p-5">
     <div>
@@ -29,23 +29,27 @@
       :show="showModal"
       :bookingData="bookingStore.bookingObject"
       @close="closeModal"
-      @confirm="confirmBooking"
+      @confirm="confirmBookingHandler"
     />
   </Transition>
 </template>
 
 <script setup lang="ts">
-import Calendar from '@/components/CalendarSelector.vue'
-import ImageCarousel from '@/components/ImageCarousel.vue'
-import BookingButton from '@/components/BookingButton.vue'
-import Time from '@/components/TimeSelector.vue'
-import ErrorAlert from '@/components/ErrorAlert.vue'
-import BookingModal from '@/components/BookingModal.vue'
+import Calendar from '@/components/home/CalendarSelector.vue'
+import ImageCarousel from '@/components/home/ImageCarousel.vue'
+import BookingButton from '@/components/home/BookingButton.vue'
+import Time from '@/components/home/TimeSelector.vue'
+import BookingModal from '@/components/home/BookingModal.vue'
+
 import { useBookingStore } from '@/stores/booking'
+import { useNotifyStore } from '@/stores/notify'
+
 import { ref } from 'vue'
+import NotifyComponent from '@/components/global/NotifyComponent.vue'
 
 const showModal = ref(false)
 const bookingStore = useBookingStore()
+const notify = useNotifyStore()
 
 const openModal = () => {
   showModal.value = true
@@ -53,9 +57,25 @@ const openModal = () => {
 
 const closeModal = () => {
   showModal.value = false
+  clearBooking()
 }
 
-const confirmBooking = () => {
-  showModal.value = false
+const clearBooking = () => {
+  bookingStore.resetBookingObject()
 }
+
+const confirmBookingHandler = async () => {
+  try {
+    bookingStore.loadingBookedSlots = true;
+
+    await bookingStore.confirmBooking();
+
+    notify.notify('Booking successfully submitted!', 'success', 'home');
+
+    await bookingStore.fetchBookedSlots();
+  } catch (err) {
+    notify.notify('Booking failed. Please try again.', 'error', 'home');
+    console.error('Booking failed:', err);
+  }
+};
 </script>

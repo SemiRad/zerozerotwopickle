@@ -113,10 +113,12 @@ const calendarDays = computed(() => {
   const lastDay = new Date(year, month + 1, 0)
   const daysInMonth: { date: Date; disabled: boolean; isPlaceholder?: boolean }[] = []
 
+  // Fill placeholders for alignment
   for (let i = 0; i < firstDay.getDay(); i++) {
     daysInMonth.push({ date: new Date(), disabled: true, isPlaceholder: true })
   }
 
+  // Fill real days
   for (let i = 1; i <= lastDay.getDate(); i++) {
     const d = new Date(year, month, i)
     const disabled = d < today
@@ -128,8 +130,13 @@ const calendarDays = computed(() => {
 
 const selectDate = (d: Date) => {
   bookingStore.selectedDate = d
-  bookingStore.bookingObject.timeSlots = []
+  bookingStore.bookingObject.date = d
+  bookingStore.bookingObject.startSlot = null
+  bookingStore.bookingObject.endSlot = null
   bookingStore.bookingObject.totalPrice = 0
+
+  bookingStore.fetchBookedSlots()
+
   showCalendar.value = false
 }
 

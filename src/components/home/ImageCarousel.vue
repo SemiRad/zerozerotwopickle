@@ -52,7 +52,7 @@
 
     <div class="font-inter w-full sm:w-3/4 mt-5 mb-20 lg:mb-0 flex flex-col items-center">
       <div
-        class="text-3xl sm:text-4xl md:text-4xl font-bold tracking-wide uppercase text-green-950 text-center"
+        class="text-3xl sm:text-4xl md:text-4xl font-bold tracking-wide uppercase text-secondary text-center"
       >
         Pickleball Court
       </div>

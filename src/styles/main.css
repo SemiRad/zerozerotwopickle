@@ -15,4 +15,8 @@
   --font-roboto: 'Roboto', sans-serif;
   --font-oswald: 'Oswald', sans-serif;
   --text-tiny: 0.625rem;
+
+  --color-primary: #2f4b3d;
+  --color-secondary: #ebe9dd;
+  --color-tertiary: #6f847d;
 }
