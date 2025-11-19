@@ -1,6 +1,12 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/" }
+  "routes": [
+    { "src": "^/api/(.*)$", "dest": "/api/$1" },
+    { "src": "^/@vite/(.*)$", "dest": "/@vite/$1" },
+    { "src": "^/@id/(.*)$", "dest": "/@id/$1" },
+    { "src": "^/src/(.*)$", "dest": "/src/$1" },
+    { "src": "^/static/(.*)$", "dest": "/static/$1" },
+    { "src": "^/_next/(.*)$", "dest": "/_next/$1" },
+    { "src": "^/(.*\\..*)$", "dest": "/$1" },
+    { "src": "^/(.*)$", "dest": "/" }
   ]
 }
