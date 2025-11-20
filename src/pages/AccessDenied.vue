@@ -12,7 +12,7 @@
     <div class="flex items-center justify-center">
       <button
         @click="loginWithAnotherAccount"
-        class="flex items-center justify-center bg-primary text-secondary font-medium p-4 rounded-lg shadow-2xl hover:bg-gray-100 transition-colors w-fit"
+        class="flex items-center justify-center bg-primary text-secondary font-medium p-4 rounded-lg shadow-2xl hover:bg-tertiary hover:cursor-pointer transition-colors w-fit"
       >
         <img src="/google.png" alt="Google" class="w-6 h-6 mr-3" />
         <span class="font-inter">Log in with another account</span>

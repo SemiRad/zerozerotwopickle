@@ -6,7 +6,7 @@
       Dashboard
     </h1>
 
-    <button @click="signOut" class="ml-auto mr-5">
+    <button @click="signOut" class="ml-auto mr-5 hover:cursor-pointer">
       <ArrowLeftOnRectangleIcon class="w-6 h-6 text-secondary" />
     </button>
   </div>
