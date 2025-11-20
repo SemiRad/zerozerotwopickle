@@ -7,6 +7,9 @@
 
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    "moduleResolution": "node",
+    "types": ["@supabase/supabase-js"]
   }
 }

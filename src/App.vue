@@ -2,7 +2,15 @@
   <router-view />
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted } from 'vue'
+
+onMounted(async () => {
+  if (window.location.hash.includes('access_token')) {
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+})
+</script>
 
 <style lang="css">
 html,

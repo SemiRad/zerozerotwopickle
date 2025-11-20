@@ -1,8 +1,18 @@
 <template>
+  <div class="relative py-5 flex items-center">
+    <h1
+      class="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold uppercase text-secondary text-center"
+    >
+      Dashboard
+    </h1>
+
+    <button @click="signOut" class="ml-auto mr-5">
+      <ArrowLeftOnRectangleIcon class="w-6 h-6 text-secondary" />
+    </button>
+  </div>
+
   <NotifyComponent target="admin" />
   <div class="admin-page p-6 font-inter">
-    <h1 class="text-2xl font-bold mb-4 uppercase text-center text-secondary">Dashboard</h1>
-
     <!-- Buttons -->
     <div class="flex flex-row gap-4 my-4">
       <button
@@ -211,12 +221,16 @@ import NotifyComponent from '@/components/global/NotifyComponent.vue'
 import BookingStatusModal from '@/components/admin/BookingStatusModal.vue'
 import ManualBooking from '@/components/admin/ManualBooking.vue'
 
+import { ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/solid'
 import { ref, onMounted, computed } from 'vue'
 import type { BookingSlot, BookingObject } from '@/stores/booking'
 
 import { useBookingStore } from '@/stores/booking'
 import { useNotifyStore } from '@/stores/notify'
+import { useRouter } from 'vue-router'
 import TimeExtensionModal from '@/components/admin/TimeExtensionModal.vue'
+
+import { supabase } from '../lib/supabase'
 
 export type BookingRecord = BookingObject & {
   id: number
@@ -235,6 +249,7 @@ const statusModal = ref(false)
 const manualBookingModal = ref(false)
 const timeExtensionModal = ref(false)
 
+const router = useRouter()
 const bookingStore = useBookingStore()
 const notify = useNotifyStore()
 const sortKey = ref<'status' | 'date' | 'timeRange' | null>(null)
@@ -409,6 +424,10 @@ const closeTimeExtensionModal = () => {
 const confirmTimeExtensionModal = () => {
   timeExtensionModal.value = false
   console.log('placeholder for confirm')
+}
+
+const signOut = async () => {
+  await supabase.auth.signOut().then(() => router.push('/login'))
 }
 </script>
 
